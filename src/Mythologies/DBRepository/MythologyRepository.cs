@@ -19,4 +19,11 @@ public class MythologyRepository : IMythologyRepository
     {
         return await _context.Mythologies.ToListAsync();
     }
+
+    public async Task<Mythology?> GetMythologyByIdAsync(int id)
+    {
+        return await _context.Mythologies
+            .Include(m => m.Gods)
+            .FirstOrDefaultAsync(m => m.Id == id);
+    }
 }
