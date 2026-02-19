@@ -49,4 +49,16 @@ public class GodRepository : IGodRepository
     {
         return Task.FromResult(gods.Where(god => god.Name.Contains(parameter.Name)).ToList());
     }
+
+    public Task<bool> DeleteGodByIdAsync(int id)
+    {
+        var god = gods.FirstOrDefault(g => g.Id == id);
+        if (god == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        gods.Remove(god);
+        return Task.FromResult(true);
+    }
 }

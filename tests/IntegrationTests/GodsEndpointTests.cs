@@ -65,10 +65,44 @@ public class GodsEndpointTests
         
         var successfulRequests = responses.Count(r => r.IsSuccessStatusCode);
         var rateLimitedRequests = responses.Count(r => r.StatusCode == System.Net.HttpStatusCode.TooManyRequests);
-        
+
         // We expect around 100 successful requests (our rate limit) and the rest to be rate limited
         Assert.That(successfulRequests, Is.LessThanOrEqualTo(100), "Should not exceed rate limit");
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
+    }
+
+    [Test]
+    public async Task DeleteGod_WhenGodExists_ShouldReturnNoContent()
+    {
+        // Arrange - First, get all gods to find an existing god ID
+        var gods = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods");
+        Assert.That(gods, Is.Not.Null);
+        Assert.That(gods.Count, Is.GreaterThan(0), "Test database should have at least one god");
+        var godId = gods.First().Id;
+
+        // Act
+        var response = await _httpClient.DeleteAsync($"/api/v1/gods/{godId}");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NoContent));
+
+        // Verify the god was actually deleted
+        var verifyResponse = await _httpClient.GetAsync($"/api/v1/gods/{godId}");
+        Assert.That(verifyResponse.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.InternalServerError),
+            "Getting a deleted god should fail with error (FirstAsync throws when not found)");
+    }
+
+    [Test]
+    public async Task DeleteGod_WhenGodDoesNotExist_ShouldReturnNotFound()
+    {
+        // Arrange
+        var nonExistentId = 999999;
+
+        // Act
+        var response = await _httpClient.DeleteAsync($"/api/v1/gods/{nonExistentId}");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
     }
 }
