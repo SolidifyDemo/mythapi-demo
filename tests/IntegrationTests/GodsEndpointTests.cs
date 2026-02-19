@@ -71,4 +71,30 @@ public class GodsEndpointTests
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
     }
+
+    [Test]
+    public async Task GetGodByName_SqlInjectionAttempt_ShouldReturnEmpty()
+    {
+        // Arrange - Common SQL injection payloads
+        var maliciousNames = new[]
+        {
+            "' OR '1'='1",
+            "' OR 1=1--",
+            "'; DROP TABLE God; --"
+        };
+
+        foreach (var maliciousName in maliciousNames)
+        {
+            // Act
+            var encodedName = Uri.EscapeDataString(maliciousName);
+            var response = await _httpClient.GetAsync($"/api/v1/gods/search/{encodedName}");
+            
+            // Assert
+            Assert.That(response.IsSuccessStatusCode, Is.True, $"Request should succeed for input: {maliciousName}");
+            
+            var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+            Assert.That(gods, Is.Not.Null);
+            Assert.That(gods, Is.Empty, $"Should return empty list for SQL injection attempt: {maliciousName}");
+        }
+    }
 }

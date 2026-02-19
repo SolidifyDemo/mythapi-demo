@@ -57,11 +57,24 @@ public class GodRepository : IGodRepository
         return await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
     }
 
-    public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
+    public async Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
-        var query = parameter.IncludeAliases ? $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%' or Id in (SELECT GodId FROM Alias WHERE Name LIKE '%{parameter.Name}%')" : $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%'";
-        var result = _context.Gods.FromSqlRaw(query).ToList();
-
-        return Task.FromResult(result);
+        var normalizedName = $"%{parameter.Name}%";
+        
+        if (parameter.IncludeAliases)
+        {
+            var gods = await _context.Gods
+                .Include(g => g.Aliases)
+                .Where(g => EF.Functions.Like(g.Name, normalizedName) 
+                         || g.Aliases.Any(a => EF.Functions.Like(a.Name, normalizedName)))
+                .ToListAsync();
+            return gods;
+        }
+        else
+        {
+            return await _context.Gods
+                .Where(g => EF.Functions.Like(g.Name, normalizedName))
+                .ToListAsync();
+        }
     }
 }

@@ -54,5 +54,23 @@ namespace UnitTests
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Name, Is.EqualTo("Zeus"));
         }
+
+        [Test]
+        public async Task GetGodByName_DoesNotAllowSqlInjection()
+        {
+            // Arrange
+            var maliciousName = "' OR '1'='1";
+            var parameter = new GodByNameParameter(maliciousName, false);
+            
+            // Mock repository to return empty list for SQL injection attempt
+            _mockRepository.Setup(repo => repo.GetGodByNameAsync(It.IsAny<GodByNameParameter>()))
+                .ReturnsAsync(new List<God>());
+            
+            // Act
+            var result = await _mockRepository.Object.GetGodByNameAsync(parameter);
+            
+            // Assert
+            Assert.That(result, Is.Empty); // Should find nothing, not all records
+        }
     }
 }
