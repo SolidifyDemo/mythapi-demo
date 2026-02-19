@@ -1,0 +1,8 @@
+- Never share API keys, passwords, or sensitive credentials in code or documentation.
+- Sanitize all user inputs to prevent injection attacks.
+- Validate and authenticate all incoming requests.
+- Limit permissions and access to only what is necessary.
+- Log security-relevant events without exposing sensitive data.
+- Regularly update dependencies to patch known vulnerabilities.
+- Use HTTPS for all network communications.
+- Avoid hardcoding secrets; use environment variables or secure vaults.

@@ -1,0 +1,11 @@
+services:
+  server:
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    environment:
+      - MYTH_KeyVaultName=${MYTH_KeyVaultName}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}

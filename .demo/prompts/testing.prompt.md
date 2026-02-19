@@ -1,0 +1,10 @@
+- Write clear, concise, and descriptive test prompts that cover both typical and edge cases.
+- Ensure each test is independent and does not rely on the outcome of other tests.
+- Use consistent formatting and naming conventions for all test cases.
+- Include both positive (expected behavior) and negative (error or unexpected input) scenarios.
+- Validate not only the correctness of the output but also the handling of invalid or unexpected inputs.
+- Document the purpose of each test case with a brief comment.
+- Keep test prompts simple and focused on a single aspect or feature.
+- Regularly review and update tests to reflect changes in the codebase or requirements.
+- Avoid duplicating test cases; ensure each test adds unique value.
+- Use clear assertions or expected outputs to make test results easy to interpret.
