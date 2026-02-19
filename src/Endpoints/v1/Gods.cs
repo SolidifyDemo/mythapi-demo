@@ -11,7 +11,7 @@ public static class Gods {
 
 
         gods.MapGet("", GetAlllGods);
-        gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
+        gods.MapGet("{id}", GetGodById);
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
     }
@@ -19,4 +19,15 @@ public static class Gods {
     public static Task<List<God>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository) => repository.AddOrUpdateGods(gods);
 
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
+
+    public static async Task<IResult> GetGodById(int id, IGodRepository repository)
+    {
+        if (id <= 0)
+            return Results.BadRequest(new { error = "ID must be a positive integer" });
+            
+        var god = await repository.GetGodAsync(new GodParameter(id));
+        return god is null 
+            ? Results.NotFound(new { error = $"God with ID {id} not found" })
+            : Results.Ok(god);
+    }
 }
