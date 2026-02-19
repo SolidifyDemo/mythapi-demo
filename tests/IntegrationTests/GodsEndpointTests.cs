@@ -46,6 +46,61 @@ public class GodsEndpointTests
     }
 
     [Test]
+    public async Task GetGodById_ValidId_ShouldReturnGod()
+    {
+        // Arrange - Get a list of gods first to find a valid ID
+        var gods = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods");
+        Assert.That(gods, Is.Not.Null);
+        Assert.That(gods!.Count, Is.GreaterThan(0));
+        var validId = gods[0].Id;
+
+        // Act
+        var response = await _httpClient.GetAsync($"/api/v1/gods/{validId}");
+
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        var god = await response.Content.ReadFromJsonAsync<God>();
+        Assert.That(god, Is.Not.Null);
+        Assert.That(god!.Id, Is.EqualTo(validId));
+    }
+
+    [Test]
+    public async Task GetGodById_NonExistentId_ShouldReturn404()
+    {
+        // Act
+        var response = await _httpClient.GetAsync("/api/v1/gods/99999");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.That(content, Does.Contain("not found"));
+    }
+
+    [Test]
+    public async Task GetGodById_NegativeId_ShouldReturn400()
+    {
+        // Act
+        var response = await _httpClient.GetAsync("/api/v1/gods/-1");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.That(content, Does.Contain("positive integer"));
+    }
+
+    [Test]
+    public async Task GetGodById_ZeroId_ShouldReturn400()
+    {
+        // Act
+        var response = await _httpClient.GetAsync("/api/v1/gods/0");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.That(content, Does.Contain("positive integer"));
+    }
+
+    [Test]
     public async Task GetAllGods_ConcurrentRequests_ShouldRespectRateLim()
     {
         // Arrange

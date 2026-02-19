@@ -40,9 +40,11 @@ public class GodRepository : IGodRepository
         return Task.FromResult(gods as IList<God>);
     }
 
-    public Task<God> GetGodAsync(GodParameter parameter)
+    public Task<God?> GetGodAsync(GodParameter parameter)
     {
-        return Task.FromResult(gods[parameter.Id]);
+        if (parameter.Id >= 0 && parameter.Id < gods.Count)
+            return Task.FromResult<God?>(gods[parameter.Id]);
+        return Task.FromResult<God?>(null);
     }
 
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)

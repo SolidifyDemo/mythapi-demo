@@ -5,6 +5,7 @@ using MythApi.Common.Database;
 using MythApi.Endpoints.v1;
 using MythApi.Mythologies.DBRepositories;
 using MythApi.Mythologies.Interfaces;
+using MythApi.Common.Middleware;
 using Azure.Identity;
 using Serilog;
 using System.Runtime.CompilerServices;
@@ -109,6 +110,8 @@ try
         var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
         initializer.InitializeDatabase();
     }
+
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     app.RegisterGodEndpoints();
     app.RegisterMythologiesEndpoints();

@@ -6,7 +6,7 @@ namespace MythApi.Gods.Interfaces;
 public interface IGodRepository{
     public Task<IList<God>> GetAllGodsAsync();
 
-    public Task<God> GetGodAsync(GodParameter parameter);
+    public Task<God?> GetGodAsync(GodParameter parameter);
 
     public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter);
 

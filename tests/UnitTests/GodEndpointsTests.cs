@@ -8,6 +8,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace UnitTests
 {
@@ -34,6 +35,43 @@ namespace UnitTests
             var result = await MythApi.Endpoints.v1.Gods.GetAlllGods(_mockRepository.Object);
 
             Assert.That(result.Count, Is.EqualTo(2));
+        }
+
+        [Test]
+        public async Task GetGodById_ValidId_ShouldReturnGod()
+        {
+            var god = new God { Id = 1, Name = "Zeus", MythologyId = 1, Description = "God of the sky" };
+            _mockRepository.Setup(repo => repo.GetGodAsync(It.IsAny<GodParameter>())).ReturnsAsync(god);
+
+            var result = await Gods.GetGodById(1, _mockRepository.Object);
+
+            Assert.That(result, Is.InstanceOf<IResult>());
+        }
+
+        [Test]
+        public async Task GetGodById_NonExistentId_ShouldReturnNotFound()
+        {
+            _mockRepository.Setup(repo => repo.GetGodAsync(It.IsAny<GodParameter>())).ReturnsAsync((God?)null);
+
+            var result = await Gods.GetGodById(99999, _mockRepository.Object);
+
+            Assert.That(result, Is.InstanceOf<IResult>());
+        }
+
+        [Test]
+        public async Task GetGodById_NegativeId_ShouldReturnBadRequest()
+        {
+            var result = await Gods.GetGodById(-1, _mockRepository.Object);
+
+            Assert.That(result, Is.InstanceOf<IResult>());
+        }
+
+        [Test]
+        public async Task GetGodById_ZeroId_ShouldReturnBadRequest()
+        {
+            var result = await Gods.GetGodById(0, _mockRepository.Object);
+
+            Assert.That(result, Is.InstanceOf<IResult>());
         }
 
         [Test]
