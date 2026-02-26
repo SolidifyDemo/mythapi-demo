@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using MythApi.Common.Database.Models;
+using MythApi.Gods.Models;
+using System.Net;
 
 namespace IntegrationTests;
 
@@ -70,5 +72,221 @@ public class GodsEndpointTests
         Assert.That(successfulRequests, Is.LessThanOrEqualTo(100), "Should not exceed rate limit");
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
+    }
+
+    [Test]
+    public async Task PostGods_WithValidInput_ShouldReturnOk()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "TestGod", MythologyId = 1, Description = "Test god description" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+    }
+
+    [Test]
+    public async Task PostGods_WithNullInput_ShouldReturnBadRequest()
+    {
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", (List<GodInput>)null!);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithEmptyList_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>();
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithBatchSizeExceeded_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>();
+        for (int i = 0; i < 101; i++)
+        {
+            godInputs.Add(new GodInput { Name = $"God{i}", MythologyId = 1, Description = "Test" });
+        }
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithEmptyName_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "", MythologyId = 1, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithNameTooLong_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = new string('a', 101), MythologyId = 1, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithDescriptionTooLong_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "Zeus", MythologyId = 1, Description = new string('a', 1001) }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithNegativeMythologyId_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "Zeus", MythologyId = -1, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithZeroMythologyId_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "Zeus", MythologyId = 0, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithNegativeId_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Id = -1, Name = "Zeus", MythologyId = 1, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithZeroId_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Id = 0, Name = "Zeus", MythologyId = 1, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task PostGods_WithXSSInName_ShouldSanitizeAndSucceed()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "<script>alert('xss')</script>", MythologyId = 1, Description = "Test" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        
+        // Verify the response contains sanitized data
+        var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+        Assert.That(gods, Is.Not.Null);
+        
+        // Find the god we just created (should be the last one or one with sanitized name)
+        var createdGod = gods!.FirstOrDefault(g => g.Name.Contains("&lt;") && g.Name.Contains("&gt;"));
+        Assert.That(createdGod, Is.Not.Null, "Sanitized god should be in the response");
+    }
+
+    [Test]
+    public async Task PostGods_WithXSSInDescription_ShouldSanitizeAndSucceed()
+    {
+        // Arrange
+        var godInputs = new List<GodInput>
+        {
+            new GodInput { Name = "Zeus", MythologyId = 1, Description = "<img src=x onerror='alert(1)'>" }
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/gods", godInputs);
+
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        
+        // Verify the response contains sanitized data
+        var gods = await response.Content.ReadFromJsonAsync<List<God>>();
+        Assert.That(gods, Is.Not.Null);
+        
+        // Find a god with sanitized description
+        var createdGod = gods!.FirstOrDefault(g => g.Description.Contains("&lt;") && g.Description.Contains("&gt;"));
+        Assert.That(createdGod, Is.Not.Null, "Sanitized god should be in the response");
     }
 }
