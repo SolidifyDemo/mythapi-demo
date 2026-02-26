@@ -31,7 +31,7 @@ namespace UnitTests
             };
             _mockRepository.Setup(repo => repo.GetAllGodsAsync()).ReturnsAsync(gods);
 
-            var result = await MythApi.Endpoints.v1.Gods.GetAlllGods(_mockRepository.Object);
+            var result = await MythApi.Endpoints.v1.Gods.GetAllGods(_mockRepository.Object);
 
             Assert.That(result.Count, Is.EqualTo(2));
         }
