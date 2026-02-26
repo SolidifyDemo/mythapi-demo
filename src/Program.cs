@@ -110,6 +110,15 @@ try
         initializer.InitializeDatabase();
     }
 
+    // Configure HSTS for production (adds Strict-Transport-Security header)
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseHsts();
+    }
+
+    // Redirect HTTP requests to HTTPS
+    app.UseHttpsRedirection();
+
     app.RegisterGodEndpoints();
     app.RegisterMythologiesEndpoints();
     app.UseSwagger();
