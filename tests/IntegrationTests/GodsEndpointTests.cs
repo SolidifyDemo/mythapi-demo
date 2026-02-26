@@ -6,6 +6,7 @@ namespace IntegrationTests;
 [TestFixture]
 public class GodsEndpointTests
 {
+    private const string AdminApiKey = "admin-key-12345";
     private CustomWebApplicationFactory<Program> _factory;
     private HttpClient _httpClient;
 
@@ -70,5 +71,61 @@ public class GodsEndpointTests
         Assert.That(successfulRequests, Is.LessThanOrEqualTo(100), "Should not exceed rate limit");
         // Assert.That(rateLimitedRequests, Is.GreaterThan(0), "Some requests should be rate limited");
         Assert.That(successfulRequests + rateLimitedRequests, Is.EqualTo(numberOfRequests), "All requests should be either successful or rate limited");
+    }
+
+    [Test]
+    public async Task DeleteAllGods_WithoutAuthentication_ShouldReturn401()
+    {
+        // Act
+        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
+    public async Task DeleteAllGods_WithInvalidApiKey_ShouldReturn401()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/gods");
+        request.Headers.Add("X-API-Key", "invalid-key");
+
+        // Act
+        var response = await _httpClient.SendAsync(request);
+
+        // Assert
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
+    public async Task DeleteAllGods_WithValidAdminKey_ShouldReturn200()
+    {
+        // Arrange
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/gods");
+        request.Headers.Add("X-API-Key", AdminApiKey);
+
+        // Act
+        var response = await _httpClient.SendAsync(request);
+
+        // Assert
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+    }
+
+    [Test]
+    public async Task DeleteAllGods_WithValidAdminKey_ShouldDeleteAllGods()
+    {
+        // Arrange
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/gods");
+        deleteRequest.Headers.Add("X-API-Key", AdminApiKey);
+
+        // Act
+        var deleteResponse = await _httpClient.SendAsync(deleteRequest);
+        var gods = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods");
+
+        // Assert
+        Assert.That(deleteResponse.IsSuccessStatusCode, Is.True);
+        Assert.That(gods, Is.Not.Null);
+        Assert.That(gods.Count, Is.EqualTo(0));
     }
 }

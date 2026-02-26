@@ -5,10 +5,12 @@ using MythApi.Common.Database;
 using MythApi.Endpoints.v1;
 using MythApi.Mythologies.DBRepositories;
 using MythApi.Mythologies.Interfaces;
+using MythApi.Common.Authentication;
 using Azure.Identity;
 using Serilog;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Authentication;
 
 [assembly: InternalsVisibleTo("IntegrationTests")]
 
@@ -34,6 +36,16 @@ try
     var sqliteDatabase = true; // Default to demo
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+
+    // Configure Authentication
+    builder.Services.AddAuthentication("ApiKey")
+        .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", null);
+    
+    // Configure Authorization with Admin policy
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    });
 
     
 
@@ -110,8 +122,13 @@ try
         initializer.InitializeDatabase();
     }
 
+    // Add Authentication & Authorization middleware BEFORE endpoint registration
+    app.UseAuthentication();
+    app.UseAuthorization();
+
     app.RegisterGodEndpoints();
     app.RegisterMythologiesEndpoints();
+    
     app.UseSwagger();
     app.UseSwaggerUI();
 

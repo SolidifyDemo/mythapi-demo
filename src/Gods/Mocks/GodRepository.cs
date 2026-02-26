@@ -49,4 +49,11 @@ public class GodRepository : IGodRepository
     {
         return Task.FromResult(gods.Where(god => god.Name.Contains(parameter.Name)).ToList());
     }
+
+    public Task<int> DeleteAllGodsAsync()
+    {
+        var count = gods.Count;
+        gods.Clear();
+        return Task.FromResult(count);
+    }
 }
