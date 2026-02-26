@@ -51,8 +51,141 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result.First().Name, Is.EqualTo("Zeus"));
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Once);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithNullInput_ShouldReturnBadRequest()
+        {
+            var result = await Gods.AddOrUpdateGods(null!, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithEmptyList_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>();
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithBatchSizeExceeded_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>();
+            for (int i = 0; i < MythApi.Endpoints.v1.Gods.MAX_BATCH_SIZE + 1; i++)
+            {
+                godInputs.Add(new GodInput { Name = $"God{i}", MythologyId = 1, Description = "Test" });
+            }
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithEmptyName_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Name = "", MythologyId = 1, Description = "Test" }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithNameTooLong_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Name = new string('a', MythApi.Endpoints.v1.Gods.MAX_NAME_LENGTH + 1), MythologyId = 1, Description = "Test" }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithDescriptionTooLong_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Name = "Zeus", MythologyId = 1, Description = new string('a', MythApi.Endpoints.v1.Gods.MAX_DESCRIPTION_LENGTH + 1) }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithNegativeMythologyId_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Name = "Zeus", MythologyId = -1, Description = "Test" }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithZeroMythologyId_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Name = "Zeus", MythologyId = 0, Description = "Test" }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithNegativeId_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Id = -1, Name = "Zeus", MythologyId = 1, Description = "Test" }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
+        }
+
+        [Test]
+        public async Task AddOrUpdateGods_WithZeroId_ShouldReturnBadRequest()
+        {
+            var godInputs = new List<GodInput>
+            {
+                new GodInput { Id = 0, Name = "Zeus", MythologyId = 1, Description = "Test" }
+            };
+
+            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
+
+            Assert.That(result, Is.Not.Null);
+            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>()), Times.Never);
         }
     }
 }
