@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Moq;
 using MythApi.Common.Database.Models;
 using MythApi.Endpoints.v1;
@@ -53,6 +54,28 @@ namespace UnitTests
 
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Name, Is.EqualTo("Zeus"));
+        }
+
+        [Test]
+        public async Task DeleteAllGods_ShouldReturnDeletedCount()
+        {
+            _mockRepository.Setup(repo => repo.DeleteAllGodsAsync()).ReturnsAsync(5);
+
+            var result = await Gods.DeleteAllGods(_mockRepository.Object);
+
+            Assert.That(result, Is.InstanceOf<IResult>());
+            _mockRepository.Verify(repo => repo.DeleteAllGodsAsync(), Times.Once);
+        }
+
+        [Test]
+        public async Task DeleteAllGods_WhenNoGods_ShouldReturnZeroCount()
+        {
+            _mockRepository.Setup(repo => repo.DeleteAllGodsAsync()).ReturnsAsync(0);
+
+            var result = await Gods.DeleteAllGods(_mockRepository.Object);
+
+            Assert.That(result, Is.InstanceOf<IResult>());
+            _mockRepository.Verify(repo => repo.DeleteAllGodsAsync(), Times.Once);
         }
     }
 }

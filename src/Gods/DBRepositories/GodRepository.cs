@@ -64,4 +64,27 @@ public class GodRepository : IGodRepository
 
         return Task.FromResult(result);
     }
+
+    /// <summary>
+    /// Deletes all gods from the database.
+    /// </summary>
+    /// <returns>The number of gods deleted.</returns>
+    /// <remarks>
+    /// This is a destructive operation that permanently removes all god records.
+    /// This operation should be restricted to authorized administrators only.
+    /// </remarks>
+    public async Task<int> DeleteAllGodsAsync()
+    {
+        var allGods = await _context.Gods.ToListAsync();
+        var count = allGods.Count;
+        
+        if (count > 0)
+        {
+            _context.Gods.RemoveRange(allGods);
+            await _context.SaveChangesAsync();
+            Serilog.Log.Warning("Deleted all {Count} gods from the database", count);
+        }
+        
+        return count;
+    }
 }

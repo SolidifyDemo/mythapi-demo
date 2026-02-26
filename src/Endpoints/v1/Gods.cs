@@ -14,9 +14,16 @@ public static class Gods {
         gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
+        gods.MapDelete("", DeleteAllGods).RequireAuthorization("AdminOnly");
     }
 
     public static Task<List<God>> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository) => repository.AddOrUpdateGods(gods);
 
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
+    
+    public static async Task<IResult> DeleteAllGods(IGodRepository repository)
+    {
+        var count = await repository.DeleteAllGodsAsync();
+        return Results.Ok(new { message = $"Deleted {count} gods", count });
+    }
 }
