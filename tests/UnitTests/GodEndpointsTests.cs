@@ -52,6 +52,8 @@ namespace UnitTests
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
             Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var okResult = result as Microsoft.AspNetCore.Http.HttpResults.Ok<List<God>>;
+            Assert.That(okResult, Is.Not.Null, "Result should be an Ok result");
         }
 
         [Test]
@@ -59,7 +61,8 @@ namespace UnitTests
         {
             var result = await Gods.AddOrUpdateGods(null!, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -69,7 +72,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -83,7 +87,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -96,7 +101,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -109,7 +115,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -122,7 +129,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -135,7 +143,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -148,7 +157,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -161,7 +171,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
 
         [Test]
@@ -174,47 +185,8 @@ namespace UnitTests
 
             var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
 
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
-        }
-
-        [Test]
-        public async Task AddOrUpdateGods_WithXSSInName_ShouldSanitize()
-        {
-            var godInputs = new List<GodInput>
-            {
-                new GodInput { Name = "<script>alert('xss')</script>", MythologyId = 1, Description = "Test" }
-            };
-            var gods = new List<God>
-            {
-                new God { Name = "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;", MythologyId = 1, Description = "Test" }
-            };
-            _mockRepository.Setup(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>())).ReturnsAsync(gods);
-
-            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
-
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
-            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.Is<List<GodInput>>(
-                list => list[0].Name.Contains("&lt;") && list[0].Name.Contains("&gt;"))), Times.Once);
-        }
-
-        [Test]
-        public async Task AddOrUpdateGods_WithXSSInDescription_ShouldSanitize()
-        {
-            var godInputs = new List<GodInput>
-            {
-                new GodInput { Name = "Zeus", MythologyId = 1, Description = "<img src=x onerror='alert(1)'>" }
-            };
-            var gods = new List<God>
-            {
-                new God { Name = "Zeus", MythologyId = 1, Description = "&lt;img src=x onerror=&#39;alert(1)&#39;&gt;" }
-            };
-            _mockRepository.Setup(repo => repo.AddOrUpdateGods(It.IsAny<List<GodInput>>())).ReturnsAsync(gods);
-
-            var result = await Gods.AddOrUpdateGods(godInputs, _mockRepository.Object);
-
-            Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Http.IResult>());
-            _mockRepository.Verify(repo => repo.AddOrUpdateGods(It.Is<List<GodInput>>(
-                list => list[0].Description.Contains("&lt;") && list[0].Description.Contains("&gt;"))), Times.Once);
+            var badRequestResult = result as Microsoft.AspNetCore.Http.HttpResults.BadRequest<object>;
+            Assert.That(badRequestResult, Is.Not.Null, "Result should be a BadRequest result");
         }
     }
 }

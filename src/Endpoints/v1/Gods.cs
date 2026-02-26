@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using MythApi.Gods.Interfaces;
 using MythApi.Common.Database.Models;
 using MythApi.Gods.Models;
-using System.Web;
 
 namespace MythApi.Endpoints.v1;
 public static class Gods {
@@ -22,6 +21,15 @@ public static class Gods {
         gods.MapPost("", AddOrUpdateGods);
     }
 
+    /// <summary>
+    /// Adds or updates gods in the database with comprehensive input validation.
+    /// </summary>
+    /// <remarks>
+    /// Security Note: This API validates input format and length but does not sanitize HTML/script content.
+    /// API consumers are responsible for properly encoding/sanitizing data when rendering it in HTML contexts
+    /// to prevent XSS attacks. This follows the principle that APIs should store data as-is and let clients
+    /// handle presentation-layer security concerns.
+    /// </remarks>
     public static async Task<IResult> AddOrUpdateGods(List<GodInput> gods, IGodRepository repository)
     {
         // Validate input list
@@ -76,28 +84,10 @@ public static class Gods {
             {
                 return Results.BadRequest(new { error = $"God at index {i}: Id must be a positive integer when provided." });
             }
-
-            // Sanitize Name and Description to prevent XSS
-            god.Name = SanitizeInput(god.Name);
-            god.Description = SanitizeInput(god.Description);
         }
 
         var result = await repository.AddOrUpdateGods(gods);
         return Results.Ok(result);
-    }
-
-    /// <summary>
-    /// Sanitizes user input to prevent XSS attacks by encoding HTML characters.
-    /// </summary>
-    private static string SanitizeInput(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return input;
-        }
-
-        // HTML encode to prevent XSS
-        return HttpUtility.HtmlEncode(input);
     }
 
     public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
