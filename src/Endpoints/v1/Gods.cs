@@ -5,17 +5,17 @@ using MythApi.Gods.Models;
 
 namespace MythApi.Endpoints.v1;
 public static class Gods {
-    // Validation constants
-    private const int MAX_NAME_LENGTH = 100;
-    private const int MAX_DESCRIPTION_LENGTH = 1000;
-    private const int MAX_BATCH_SIZE = 100;
+    // Validation constants (internal for test access)
+    internal const int MAX_NAME_LENGTH = 100;
+    internal const int MAX_DESCRIPTION_LENGTH = 1000;
+    internal const int MAX_BATCH_SIZE = 100;
 
     public static void RegisterGodEndpoints(this IEndpointRouteBuilder endpoints) {
         
         var gods = endpoints.MapGroup("/api/v1/gods");
 
 
-        gods.MapGet("", GetAlllGods);
+        gods.MapGet("", GetAllGods);
         gods.MapGet("{id}", (int id, IGodRepository repository) => repository.GetGodAsync(new GodParameter(id)));
         gods.MapGet("search/{name}", (string name, IGodRepository repository, [FromQuery] bool includeAliases = false) => repository.GetGodByNameAsync(new GodByNameParameter(name, includeAliases)));
         gods.MapPost("", AddOrUpdateGods);
@@ -90,5 +90,5 @@ public static class Gods {
         return Results.Ok(result);
     }
 
-    public static Task<IList<God>> GetAlllGods(IGodRepository repository) => repository.GetAllGodsAsync();
+    public static Task<IList<God>> GetAllGods(IGodRepository repository) => repository.GetAllGodsAsync();
 }
