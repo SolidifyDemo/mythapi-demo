@@ -17,14 +17,14 @@ public class HttpsRedirectionTests
         // middleware doesn't break request processing.
 
         // Arrange
-        var factory = new WebApplicationFactory<Program>()
+        using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Staging");
                 builder.UseSetting("Args:0", "--in-memory-database");
             });
 
-        var client = factory.CreateClient();
+        using var client = factory.CreateClient();
 
         // Act - Make a request to verify the app works with HTTPS configuration
         var response = await client.GetAsync("/api/v1/gods");
@@ -33,9 +33,6 @@ public class HttpsRedirectionTests
         // with HTTPS redirection middleware in place
         Assert.That(response.IsSuccessStatusCode, Is.True,
             "Application should handle requests successfully with HTTPS redirection configured");
-
-        client.Dispose();
-        factory.Dispose();
     }
 
     [Test]
@@ -45,14 +42,14 @@ public class HttpsRedirectionTests
         // in production environments
 
         // Arrange
-        var factory = new WebApplicationFactory<Program>()
+        using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Production");
                 builder.UseSetting("Args:0", "--in-memory-database");
             });
 
-        var client = factory.CreateClient();
+        using var client = factory.CreateClient();
 
         // Act - Make a request
         var response = await client.GetAsync("/api/v1/gods");
@@ -65,9 +62,6 @@ public class HttpsRedirectionTests
         // header should be present
         // Note: WebApplicationFactory test server may not include all headers,
         // but we verify the application doesn't crash with HSTS enabled
-        
-        client.Dispose();
-        factory.Dispose();
     }
 
     [Test]
@@ -77,14 +71,14 @@ public class HttpsRedirectionTests
         // (HSTS is disabled in Development)
 
         // Arrange
-        var factory = new WebApplicationFactory<Program>()
+        using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");
                 builder.UseSetting("Args:0", "--in-memory-database");
             });
 
-        var client = factory.CreateClient();
+        using var client = factory.CreateClient();
 
         // Act
         var response = await client.GetAsync("/api/v1/gods");
@@ -92,8 +86,5 @@ public class HttpsRedirectionTests
         // Assert
         Assert.That(response.IsSuccessStatusCode, Is.True,
             "Application should work in Development with HTTPS redirection");
-
-        client.Dispose();
-        factory.Dispose();
     }
 }
