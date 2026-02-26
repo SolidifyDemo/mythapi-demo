@@ -9,6 +9,9 @@ using Azure.Identity;
 using Serilog;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 [assembly: InternalsVisibleTo("IntegrationTests")]
 
@@ -34,6 +37,37 @@ try
     var sqliteDatabase = true; // Default to demo
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+
+    // Configure Authentication with JWT Bearer
+    var jwtKey = builder.Configuration["Jwt:Key"] ?? "ThisIsASecretKeyForDevelopmentPurposesOnly-ChangeInProduction-MustBeAtLeast32Characters";
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "MythApi";
+    var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "MythApiUsers";
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+    // Configure Authorization with policies
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+        options.AddPolicy("ReadOnly", policy => policy.RequireAuthenticatedUser());
+    });
 
     
 
@@ -114,6 +148,9 @@ try
     app.RegisterMythologiesEndpoints();
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     
 
