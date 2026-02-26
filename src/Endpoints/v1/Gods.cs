@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using MythApi.Gods.Interfaces;
 using MythApi.Common.Database.Models;
 using MythApi.Gods.Models;
-using System.Text.RegularExpressions;
 using System.Web;
 
 namespace MythApi.Endpoints.v1;
