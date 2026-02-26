@@ -6,6 +6,7 @@ namespace IntegrationTests;
 [TestFixture]
 public class GodsEndpointTests
 {
+    private const string AdminApiKey = "admin-key-12345";
     private CustomWebApplicationFactory<Program> _factory;
     private HttpClient _httpClient;
 
@@ -86,10 +87,11 @@ public class GodsEndpointTests
     public async Task DeleteAllGods_WithInvalidApiKey_ShouldReturn401()
     {
         // Arrange
-        _httpClient.DefaultRequestHeaders.Add("X-API-Key", "invalid-key");
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/gods");
+        request.Headers.Add("X-API-Key", "invalid-key");
 
         // Act
-        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+        var response = await _httpClient.SendAsync(request);
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Unauthorized));
@@ -99,10 +101,11 @@ public class GodsEndpointTests
     public async Task DeleteAllGods_WithValidAdminKey_ShouldReturn200()
     {
         // Arrange
-        _httpClient.DefaultRequestHeaders.Add("X-API-Key", "admin-key-12345");
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/gods");
+        request.Headers.Add("X-API-Key", AdminApiKey);
 
         // Act
-        var response = await _httpClient.DeleteAsync("/api/v1/gods");
+        var response = await _httpClient.SendAsync(request);
 
         // Assert
         Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -113,10 +116,11 @@ public class GodsEndpointTests
     public async Task DeleteAllGods_WithValidAdminKey_ShouldDeleteAllGods()
     {
         // Arrange
-        _httpClient.DefaultRequestHeaders.Add("X-API-Key", "admin-key-12345");
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, "/api/v1/gods");
+        deleteRequest.Headers.Add("X-API-Key", AdminApiKey);
 
         // Act
-        var deleteResponse = await _httpClient.DeleteAsync("/api/v1/gods");
+        var deleteResponse = await _httpClient.SendAsync(deleteRequest);
         var gods = await _httpClient.GetFromJsonAsync<List<God>>("/api/v1/gods");
 
         // Assert

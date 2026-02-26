@@ -25,8 +25,12 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
 
         var apiKey = Request.Headers[ApiKeyHeaderName].ToString();
         
-        // In a real application, validate the API key against a database or configuration
-        // For this demo, we'll use a simple hardcoded key
+        // NOTE: This implementation uses a hardcoded API key for demonstration purposes only.
+        // In a production application, API keys should be:
+        // - Stored securely in configuration (appsettings.json, environment variables, or Azure Key Vault)
+        // - Validated against a secure data store
+        // - Hashed and compared securely
+        // - Rotated regularly
         
         // Check if it's an admin key (only valid key for this demo)
         var isAdmin = apiKey == "admin-key-12345";
