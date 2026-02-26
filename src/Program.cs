@@ -12,6 +12,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MythApi.Common;
 
 [assembly: InternalsVisibleTo("IntegrationTests")]
 
@@ -39,9 +40,17 @@ try
     builder.Services.AddSwaggerGen();
 
     // Configure Authentication with JWT Bearer
-    var jwtKey = builder.Configuration["Jwt:Key"] ?? "ThisIsASecretKeyForDevelopmentPurposesOnly-ChangeInProduction-MustBeAtLeast32Characters";
-    var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "MythApi";
-    var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "MythApiUsers";
+    var jwtKey = builder.Configuration["Jwt:Key"] ?? AuthConstants.DevelopmentKey;
+    var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? AuthConstants.DefaultIssuer;
+    var jwtAudience = builder.Configuration["Jwt:Audience"] ?? AuthConstants.DefaultAudience;
+
+    // Validate that production is not using the development key
+    if (!builder.Environment.IsDevelopment() && jwtKey == AuthConstants.DevelopmentKey)
+    {
+        throw new InvalidOperationException(
+            "Production environment detected with default development JWT key. " +
+            "Please configure Jwt:Key via environment variables or Azure Key Vault for production.");
+    }
 
     builder.Services.AddAuthentication(options =>
     {

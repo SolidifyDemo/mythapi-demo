@@ -2,18 +2,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using MythApi.Common;
 
 namespace IntegrationTests;
 
 public static class TestJwtTokenGenerator
 {
-    private const string JwtKey = "ThisIsASecretKeyForDevelopmentPurposesOnly-ChangeInProduction-MustBeAtLeast32Characters";
-    private const string JwtIssuer = "MythApi";
-    private const string JwtAudience = "MythApiUsers";
-
     public static string GenerateToken(string username, string role, int expirationMinutes = 60)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthConstants.DevelopmentKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
@@ -25,8 +22,8 @@ public static class TestJwtTokenGenerator
         };
 
         var token = new JwtSecurityToken(
-            issuer: JwtIssuer,
-            audience: JwtAudience,
+            issuer: AuthConstants.DefaultIssuer,
+            audience: AuthConstants.DefaultAudience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
             signingCredentials: credentials

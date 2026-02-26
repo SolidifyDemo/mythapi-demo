@@ -99,13 +99,18 @@ public class AuthenticationTests
         var token = TestJwtTokenGenerator.GenerateAdminToken();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         
+        // Get count before adding
+        var beforeResponse = await _httpClient.GetAsync("/api/v1/gods");
+        var beforeGods = await beforeResponse.Content.ReadFromJsonAsync<List<God>>();
+        var countBefore = beforeGods?.Count ?? 0;
+        
         var newGod = new List<GodInput>
         {
             new GodInput
             {
-                Name = "TestGod",
+                Name = "TestGod_UniqueForAuthTest",
                 MythologyId = 1,
-                Description = "Test Description"
+                Description = "Test Description for Auth Test"
             }
         };
 
@@ -117,9 +122,14 @@ public class AuthenticationTests
         
         var gods = await response.Content.ReadFromJsonAsync<List<God>>();
         Assert.That(gods, Is.Not.Null);
-        // The endpoint returns all gods, not just the newly created one
+        // Verify the endpoint returns all gods including the new one
         Assert.That(gods, Is.Not.Empty);
-        Assert.That(gods!.Any(g => g.Name == "TestGod"), Is.True);
+        Assert.That(gods!.Count, Is.EqualTo(countBefore + 1));
+        
+        // Verify our new god exists with correct properties
+        var addedGod = gods.FirstOrDefault(g => g.Name == "TestGod_UniqueForAuthTest");
+        Assert.That(addedGod, Is.Not.Null);
+        Assert.That(addedGod!.Description, Is.EqualTo("Test Description for Auth Test"));
     }
 
     [Test]
