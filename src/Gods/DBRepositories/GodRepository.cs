@@ -57,6 +57,16 @@ public class GodRepository : IGodRepository
         return await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
     }
 
+    /// <summary>
+    /// Searches for gods by name using a case-insensitive LIKE pattern match.
+    /// Optionally includes searching through god aliases.
+    /// </summary>
+    /// <param name="parameter">Search parameter containing the name to search for and whether to include aliases.</param>
+    /// <returns>A list of gods matching the search criteria. Returns an empty list if no matches are found.</returns>
+    /// <remarks>
+    /// This method uses Entity Framework's parameterized queries (EF.Functions.Like) to prevent SQL injection attacks.
+    /// User input is automatically sanitized through query parameterization.
+    /// </remarks>
     public async Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
         var normalizedName = $"%{parameter.Name}%";
