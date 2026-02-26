@@ -57,11 +57,34 @@ public class GodRepository : IGodRepository
         return await _context.Gods.FirstAsync(x => x.Id == parameter.Id);
     }
 
-    public Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
+    /// <summary>
+    /// Searches for gods by name using a case-insensitive LIKE pattern match.
+    /// Optionally includes searching through god aliases.
+    /// </summary>
+    /// <param name="parameter">Search parameter containing the name to search for and whether to include aliases.</param>
+    /// <returns>A list of gods matching the search criteria. Returns an empty list if no matches are found.</returns>
+    /// <remarks>
+    /// This method uses Entity Framework's parameterized queries (EF.Functions.Like) to prevent SQL injection attacks.
+    /// User input is automatically sanitized through query parameterization.
+    /// </remarks>
+    public async Task<List<God>> GetGodByNameAsync(GodByNameParameter parameter)
     {
-        var query = parameter.IncludeAliases ? $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%' or Id in (SELECT GodId FROM Alias WHERE Name LIKE '%{parameter.Name}%')" : $"SELECT * FROM God WHERE Name LIKE '%{parameter.Name}%'";
-        var result = _context.Gods.FromSqlRaw(query).ToList();
-
-        return Task.FromResult(result);
+        var normalizedName = $"%{parameter.Name}%";
+        
+        if (parameter.IncludeAliases)
+        {
+            var gods = await _context.Gods
+                .Include(g => g.Aliases)
+                .Where(g => EF.Functions.Like(g.Name, normalizedName) 
+                         || g.Aliases.Any(a => EF.Functions.Like(a.Name, normalizedName)))
+                .ToListAsync();
+            return gods;
+        }
+        else
+        {
+            return await _context.Gods
+                .Where(g => EF.Functions.Like(g.Name, normalizedName))
+                .ToListAsync();
+        }
     }
 }
