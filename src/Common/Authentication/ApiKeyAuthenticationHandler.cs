@@ -27,24 +27,22 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         
         // In a real application, validate the API key against a database or configuration
         // For this demo, we'll use a simple hardcoded key
-        if (string.IsNullOrEmpty(apiKey))
+        
+        // Check if it's an admin key (only valid key for this demo)
+        var isAdmin = apiKey == "admin-key-12345";
+        
+        // If the key doesn't match any valid keys, fail authentication
+        if (!isAdmin)
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid API Key"));
         }
-
-        // Check if it's an admin key
-        var isAdmin = apiKey == "admin-key-12345";
         
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, "ApiUser"),
-            new Claim(ClaimTypes.NameIdentifier, apiKey)
+            new Claim(ClaimTypes.NameIdentifier, apiKey),
+            new Claim(ClaimTypes.Role, "Admin")
         };
-
-        if (isAdmin)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
-        }
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);

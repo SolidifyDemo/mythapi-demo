@@ -92,7 +92,7 @@ public class GodsEndpointTests
         var response = await _httpClient.DeleteAsync("/api/v1/gods");
 
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Forbidden));
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Unauthorized));
     }
 
     [Test]

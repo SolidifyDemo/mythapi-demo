@@ -75,13 +75,10 @@ public class GodRepository : IGodRepository
     /// </remarks>
     public async Task<int> DeleteAllGodsAsync()
     {
-        var allGods = await _context.Gods.ToListAsync();
-        var count = allGods.Count;
+        var count = await _context.Gods.ExecuteDeleteAsync();
         
         if (count > 0)
         {
-            _context.Gods.RemoveRange(allGods);
-            await _context.SaveChangesAsync();
             Serilog.Log.Warning("Deleted all {Count} gods from the database", count);
         }
         

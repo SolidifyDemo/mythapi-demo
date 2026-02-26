@@ -122,12 +122,12 @@ try
         initializer.InitializeDatabase();
     }
 
-    app.RegisterGodEndpoints();
-    app.RegisterMythologiesEndpoints();
-    
-    // Add Authentication & Authorization middleware
+    // Add Authentication & Authorization middleware BEFORE endpoint registration
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.RegisterGodEndpoints();
+    app.RegisterMythologiesEndpoints();
     
     app.UseSwagger();
     app.UseSwaggerUI();
